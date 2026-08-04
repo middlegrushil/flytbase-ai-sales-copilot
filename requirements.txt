@@ -1,5 +1,6 @@
 streamlit
 openai
+google-genai
 python-dotenv
 tavily-python
 firecrawl-py
