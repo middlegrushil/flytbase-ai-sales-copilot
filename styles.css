@@ -1,0 +1,687 @@
+/* ==========================================================
+   FlytBase Enterprise Theme
+========================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ==========================================================
+   COLORS
+========================================================== */
+
+:root{
+
+    --bg:#0F1720;
+    --bg2:#171F29;
+
+    --panel:#1D2632;
+    --panel2:#222D3A;
+
+    --primary:#FF6A13;
+    --primary-hover:#FF8533;
+
+    --text:#F8FAFC;
+    --muted:#B7C4D3;
+
+    --border:#313D4B;
+
+    --success:#22C55E;
+    --warning:#F59E0B;
+    --danger:#EF4444;
+
+}
+
+/* ==========================================================
+   GLOBAL
+========================================================== */
+
+html,
+body,
+[class*="css"]{
+
+    font-family:"Inter",sans-serif;
+    color:var(--text);
+    background:var(--bg);
+
+}
+
+.stApp{
+
+    background:
+        linear-gradient(
+            180deg,
+            #0F1720 0%,
+            #18212D 100%
+        );
+
+}
+
+/* ==========================================================
+   HIDE STREAMLIT
+========================================================== */
+
+#MainMenu,
+footer,
+header{
+
+    visibility:hidden;
+
+}
+
+/* ==========================================================
+   CONTAINER
+========================================================== */
+
+.block-container{
+
+    max-width:1450px !important;
+
+    padding-top:2rem;
+
+    padding-left:2rem;
+
+    padding-right:2rem;
+
+}
+
+/* ==========================================================
+   SCROLLBAR
+========================================================== */
+
+::-webkit-scrollbar{
+
+    width:10px;
+
+}
+
+::-webkit-scrollbar-track{
+
+    background:#141B25;
+
+}
+
+::-webkit-scrollbar-thumb{
+
+    background:#FF6A13;
+
+    border-radius:999px;
+
+}
+
+/* ==========================================================
+   SIDEBAR
+========================================================== */
+
+section[data-testid="stSidebar"]{
+
+    background:#111923;
+
+    border-right:1px solid var(--border);
+
+}
+
+section[data-testid="stSidebar"] *{
+
+    color:white;
+
+}
+
+/* ==========================================================
+   HERO
+========================================================== */
+
+.hero{
+
+    background:#1C2530;
+
+    border:1px solid var(--border);
+
+    border-radius:18px;
+
+    padding:35px;
+
+    margin-bottom:25px;
+
+}
+
+.hero h1{
+
+    font-size:34px;
+
+    font-weight:700;
+
+    color:white;
+
+    margin-bottom:8px;
+
+}
+
+.hero h3{
+
+    font-size:20px;
+
+    font-weight:500;
+
+    color:#D2DBE7;
+
+}
+
+.hero p{
+
+    font-size:16px;
+
+    color:#B8C6D5;
+
+    line-height:1.8;
+
+}
+
+/* ==========================================================
+   CARD
+========================================================== */
+
+.block{
+
+    background:#1D2632;
+
+    border:1px solid var(--border);
+
+    border-radius:16px;
+
+    padding:24px;
+
+    margin-bottom:22px;
+
+}
+
+/* ==========================================================
+   METRIC CARD
+========================================================== */
+
+.metric-card{
+
+    background:#202A37;
+
+    border-radius:16px;
+
+    border:1px solid var(--border);
+
+    padding:22px;
+
+    transition:.25s;
+
+}
+
+.metric-card:hover{
+
+    transform:translateY(-4px);
+
+    border-color:#FF6A13;
+
+}
+
+.metric-title{
+
+    font-size:12px;
+
+    text-transform:uppercase;
+
+    color:#B7C4D3;
+
+    letter-spacing:1px;
+
+}
+
+.metric-value{
+
+    font-size:28px;
+
+    font-weight:700;
+
+    color:white;
+
+    margin-top:10px;
+
+}
+
+.metric-sub{
+
+    color:#FFB380;
+
+    font-size:14px;
+
+    margin-top:6px;
+
+}
+
+/* ==========================================================
+   SECTION HEADINGS
+========================================================== */
+
+.section-title{
+
+    font-size:24px;
+
+    font-weight:700;
+
+    color:white;
+
+    margin-bottom:15px;
+
+}
+
+h1{
+
+    font-size:32px !important;
+
+}
+
+h2{
+
+    font-size:26px !important;
+
+}
+
+h3{
+
+    font-size:22px !important;
+
+}
+
+h4{
+
+    font-size:18px !important;
+
+}
+
+/* ==========================================================
+   MARKDOWN
+========================================================== */
+
+.stMarkdown{
+
+    font-size:15px;
+
+    line-height:1.7;
+
+    overflow-wrap:anywhere;
+
+    word-break:break-word;
+
+}
+
+/* ==========================================================
+   BUTTONS
+========================================================== */
+
+.stButton > button{
+
+    width:100%;
+
+    border:none;
+
+    border-radius:12px;
+
+    padding:14px 18px;
+
+    background:var(--primary);
+
+    color:white;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    transition:.25s;
+
+}
+
+.stButton > button:hover{
+
+    background:var(--primary-hover);
+
+    transform:translateY(-2px);
+
+    box-shadow:0 8px 24px rgba(255,106,19,.35);
+
+}
+
+/* ==========================================================
+   FILE UPLOADER
+========================================================== */
+
+section[data-testid="stFileUploader"]{
+
+    background:#202A37;
+
+    border:2px dashed #FF6A13;
+
+    border-radius:16px;
+
+    padding:18px;
+
+}
+
+/* ==========================================================
+   INPUT BOXES
+========================================================== */
+
+.stTextInput input,
+.stTextArea textarea,
+.stSelectbox,
+.stNumberInput input{
+
+    border-radius:10px !important;
+
+    border:1px solid var(--border) !important;
+
+    background:#1C2530 !important;
+
+    color:white !important;
+
+}
+
+/* ==========================================================
+   TABS
+========================================================== */
+
+.stTabs [data-baseweb="tab-list"]{
+
+    gap:10px;
+
+    padding-bottom:8px;
+
+}
+
+.stTabs [data-baseweb="tab"]{
+
+    background:#222D3A;
+
+    border-radius:10px;
+
+    color:#C9D4DF;
+
+    padding:10px 18px;
+
+    transition:.2s;
+
+}
+
+.stTabs [aria-selected="true"]{
+
+    background:var(--primary);
+
+    color:white;
+
+}
+
+/* ==========================================================
+   EXPANDERS
+========================================================== */
+
+.streamlit-expanderHeader{
+
+    font-size:16px;
+
+    font-weight:600;
+
+    color:white;
+
+}
+
+div[data-testid="stExpander"]{
+
+    border-radius:12px;
+
+    border:1px solid var(--border);
+
+    background:#1C2530;
+
+}
+
+/* ==========================================================
+   DOWNLOAD BUTTON
+========================================================== */
+
+.stDownloadButton > button{
+
+    width:100%;
+
+    background:var(--primary);
+
+    border:none;
+
+    border-radius:12px;
+
+    color:white;
+
+    padding:12px;
+
+    transition:.2s;
+
+}
+
+.stDownloadButton > button:hover{
+
+    background:var(--primary-hover);
+
+}
+
+/* ==========================================================
+   METRICS
+========================================================== */
+
+[data-testid="stMetric"]{
+
+    background:#202A37;
+
+    border:1px solid var(--border);
+
+    border-radius:14px;
+
+    padding:18px;
+
+}
+
+[data-testid="stMetricValue"]{
+
+    font-size:24px !important;
+
+    font-weight:700;
+
+    color:white;
+
+}
+
+[data-testid="stMetricLabel"]{
+
+    font-size:14px !important;
+
+    color:#B7C4D3;
+
+}
+
+/* ==========================================================
+   PROGRESS BAR
+========================================================== */
+
+.stProgress > div > div > div{
+
+    background:linear-gradient(
+        90deg,
+        #FF6A13,
+        #FF9C54
+    );
+
+}
+
+/* ==========================================================
+   ALERTS
+========================================================== */
+
+.stSuccess,
+.stInfo,
+.stWarning,
+.stError{
+
+    border-radius:12px;
+
+    border:none;
+
+}
+
+/* ==========================================================
+   TABLES
+========================================================== */
+
+thead tr{
+
+    background:#252F3D;
+
+}
+
+thead th{
+
+    color:white !important;
+
+    font-weight:600;
+
+}
+
+tbody tr{
+
+    background:#1C2530;
+
+}
+
+tbody td{
+
+    color:#E5EDF5;
+
+}
+
+/* ==========================================================
+   CODE BLOCKS
+========================================================== */
+
+pre{
+
+    background:#111923 !important;
+
+    border-radius:12px;
+
+    border:1px solid var(--border);
+
+    white-space:pre-wrap;
+
+}
+
+code{
+
+    white-space:pre-wrap;
+
+}
+
+/* ==========================================================
+   IMAGES
+========================================================== */
+
+img{
+
+    border-radius:14px;
+
+}
+
+/* ==========================================================
+   RESPONSIVE
+========================================================== */
+
+@media (max-width:1200px){
+
+    .hero{
+
+        padding:25px;
+
+    }
+
+    .hero h1{
+
+        font-size:28px;
+
+    }
+
+    h1{
+
+        font-size:28px !important;
+
+    }
+
+    h2{
+
+        font-size:22px !important;
+
+    }
+
+}
+
+@media (max-width:768px){
+
+    .block-container{
+
+        padding-left:1rem !important;
+
+        padding-right:1rem !important;
+
+    }
+
+    .hero{
+
+        padding:20px;
+
+    }
+
+    .hero h1{
+
+        font-size:24px;
+
+    }
+
+    .hero h3{
+
+        font-size:17px;
+
+    }
+
+    .metric-value{
+
+        font-size:22px;
+
+    }
+
+}
+
+/* ==========================================================
+   REMOVE OVERFLOW
+========================================================== */
+
+*{
+
+    word-wrap:break-word;
+
+    overflow-wrap:anywhere;
+
+}
+
+.stMarkdown,
+p,
+span,
+div{
+
+    overflow-wrap:anywhere;
+
+}
+
+iframe{
+
+    border-radius:12px;
+
+}

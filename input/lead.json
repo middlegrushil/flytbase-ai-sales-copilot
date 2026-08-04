@@ -1,0 +1,23 @@
+{
+    "company_name": "SQM",
+    "website": "https://www.sqm.com",
+    "industry": "Mining",
+    "country": "Chile",
+    "contact_name": "Rodrigo Castillo",
+    "job_title": "Operations Manager",
+    "email": "rodrigo.castillo@sqm.com",
+    "phone": "+56 2 2425 2000",
+    "employee_count": 9000,
+    "lead_source": "Website",
+    "company_size": "Enterprise",
+    "pain_points": [
+      "Manual infrastructure inspections",
+      "Large remote mining operations",
+      "Need for autonomous drone inspections",
+      "Improve operational safety"
+    ],
+    "current_solution": "Manual inspections with field teams",
+    "interest": "Drone automation and remote inspections",
+    "budget": "High",
+    "timeline": "Within 6 months"
+  }
