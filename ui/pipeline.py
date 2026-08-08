@@ -1,4 +1,5 @@
 import os
+import time
 
 import streamlit as st
 
@@ -21,140 +22,90 @@ from agents.report import generate_report
 
 
 PIPELINE = [
-
     (
         "Building FlytBase Knowledge Base",
         firecrawl_research,
-        [
-            "output/flytbase_context.json",
-        ],
+        ["output/flytbase_context.json"],
     ),
-
     (
         "Matching Similar Customer Case Study",
         match_case_study,
-        [
-            "output/case_study.json",
-        ],
+        ["output/case_study.json"],
     ),
-
     (
         "Qualifying Enterprise Lead",
         qualify_lead,
-        [
-            "output/qualification.json",
-        ],
+        ["output/qualification.json"],
     ),
-
     (
         "Researching Company",
         company_research,
-        [
-            "output/research.json",
-        ],
+        ["output/research.json"],
     ),
-
     (
         "Creating Sales Strategy",
         create_strategy,
-        [
-            "output/strategy.json",
-        ],
+        ["output/strategy.json"],
     ),
-
     (
         "Generating Solution Recommendation",
         recommend_solution,
-        [
-            "output/recommendation.json",
-        ],
+        ["output/recommendation.json"],
     ),
-
     (
         "Preparing Meeting",
         generate_meeting_prep,
-        [
-            "output/meeting_prep.md",
-        ],
+        ["output/meeting_prep.md"],
     ),
-
     (
         "Generating Follow-up Email",
         generate_email,
-        [
-            "output/email.md",
-        ],
+        ["output/email.md"],
     ),
-
     (
         "Generating Discovery Questions",
         generate_discovery_questions,
-        [
-            "output/discovery_questions.md",
-        ],
+        ["output/discovery_questions.md"],
     ),
-
     (
         "Handling Customer Objections",
         handle_objections,
-        [
-            "output/objections.json",
-        ],
+        ["output/objections.json"],
     ),
-
     (
         "Performing Risk Analysis",
         analyze_risks,
-        [
-            "output/risk_analysis.json",
-        ],
+        ["output/risk_analysis.json"],
     ),
-
     (
         "Identifying Stakeholders",
         identify_stakeholders,
-        [
-            "output/stakeholders.json",
-        ],
+        ["output/stakeholders.json"],
     ),
-
     (
         "Recommending Partner",
         recommend_partner,
-        [
-            "output/partner_recommendation.md",
-        ],
+        ["output/partner_recommendation.md"],
     ),
-
     (
         "Generating CRM Summary",
         generate_crm_summary,
-        [
-            "output/crm_summary.md",
-        ],
+        ["output/crm_summary.md"],
     ),
-
     (
         "Determining Next Action",
         recommend_next_action,
-        [
-            "output/next_action.json",
-        ],
+        ["output/next_action.json"],
     ),
-
     (
         "Generating Executive Report",
         generate_report,
-        [
-            "output/sales_brief.md",
-        ],
+        ["output/sales_brief.md"],
     ),
-
 ]
 
 
 def output_exists(paths):
-
     if not paths:
         return False
 
@@ -170,7 +121,6 @@ def run_pipeline():
     os.makedirs("output", exist_ok=True)
 
     progress = st.progress(0)
-
     status = st.empty()
 
     total = len(PIPELINE)
@@ -222,6 +172,18 @@ def run_pipeline():
         progress.progress(
             completed / total
         )
+
+        # ==================================================
+        # GEMINI FREE-TIER RATE LIMIT PROTECTION
+        # ==================================================
+
+        if completed < total:
+
+            status.info(
+                f"⏳ Preparing next AI agent..."
+            )
+
+            time.sleep(15)
 
     status.success(
         "✅ Enterprise opportunity successfully analyzed."
