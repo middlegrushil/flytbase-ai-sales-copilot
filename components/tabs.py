@@ -1,49 +1,132 @@
+import json
 import streamlit as st
 
 
-def render_dictionary(data):
-    """
-    Nicely render dictionaries, lists and strings.
-    """
+def render(data):
 
-    if data is None:
-        st.info("No data available.")
+    if data is None or data == {} or data == "" or data == []:
+        st.info("No information available.")
         return
+
+    # -----------------------------------------------------
+    # Markdown
+    # -----------------------------------------------------
 
     if isinstance(data, str):
-        st.markdown(data)
+
+        if data.strip().startswith("#"):
+            st.markdown(data)
+        else:
+            st.write(data)
+
         return
 
-    if not isinstance(data, dict):
-        st.write(data)
-        return
+    # -----------------------------------------------------
+    # List
+    # -----------------------------------------------------
 
-    for key, value in data.items():
+    if isinstance(data, list):
 
-        title = key.replace("_", " ").title()
+        for item in data:
 
-        with st.container(border=True):
+            if isinstance(item, dict):
 
-            st.markdown(f"### {title}")
+                st.markdown("---")
 
-            if isinstance(value, list):
-
-                for item in value:
-                    st.markdown(f"- {item}")
-
-            elif isinstance(value, dict):
-
-                for k, v in value.items():
+                for k, v in item.items():
 
                     st.markdown(
                         f"**{k.replace('_',' ').title()}**"
                     )
 
-                    st.write(v)
+                    if isinstance(v, list):
+
+                        for x in v:
+                            st.markdown(f"- {x}")
+
+                    elif isinstance(v, dict):
+
+                        st.json(v)
+
+                    else:
+
+                        st.write(v)
 
             else:
 
-                st.write(value)
+                st.markdown(f"• {item}")
+
+        return
+
+    # -----------------------------------------------------
+    # Dictionary
+    # -----------------------------------------------------
+
+    if isinstance(data, dict):
+
+        for key, value in data.items():
+
+            title = key.replace("_", " ").title()
+
+            with st.expander(title, expanded=True):
+
+                if isinstance(value, dict):
+
+                    for k, v in value.items():
+
+                        st.markdown(
+                            f"**{k.replace('_',' ').title()}**"
+                        )
+
+                        if isinstance(v, list):
+
+                            for x in v:
+                                st.markdown(f"- {x}")
+
+                        elif isinstance(v, dict):
+
+                            for a, b in v.items():
+
+                                st.markdown(
+                                    f"**{a.replace('_',' ').title()}**"
+                                )
+
+                                st.write(b)
+
+                        else:
+
+                            st.write(v)
+
+                elif isinstance(value, list):
+
+                    for item in value:
+
+                        if isinstance(item, dict):
+
+                            st.markdown("---")
+
+                            for a, b in item.items():
+
+                                st.markdown(
+                                    f"**{a.replace('_',' ').title()}**"
+                                )
+
+                                if isinstance(b, list):
+
+                                    for x in b:
+                                        st.markdown(f"- {x}")
+
+                                else:
+
+                                    st.write(b)
+
+                        else:
+
+                            st.markdown(f"• {item}")
+
+                else:
+
+                    st.write(value)
 
 
 def show_tabs(
@@ -61,116 +144,117 @@ def show_tabs(
     crm,
     report,
 ):
-    """
-    Display every AI Agent output.
-    """
 
-    (
-        tab1,
-        tab2,
-        tab3,
-        tab4,
-        tab5,
-        tab6,
-        tab7,
-        tab8,
-        tab9,
-        tab10,
-        tab11,
-        tab12,
-        tab13,
-    ) = st.tabs(
+    tabs = st.tabs(
         [
-            "📋 Qualification",
-            "🔍 Research",
+            "📈 Opportunity",
+            "🏢 Intelligence",
+            "🚁 Solution",
             "🎯 Strategy",
-            "🚁 Recommendation",
-            "🤝 Partner",
-            "📅 Meeting",
-            "📧 Email",
-            "❓ Discovery",
-            "⚠️ Objections",
-            "🛡️ Risks",
-            "👥 Stakeholders",
-            "📝 CRM",
-            "📄 Sales Brief",
+            "🤝 Engagement",
+            "📄 Executive Brief",
         ]
     )
 
-    with tab1:
+    # =====================================================
 
-        st.subheader("Lead Qualification")
+    with tabs[0]:
 
-        render_dictionary(qualification)
+        st.subheader("Opportunity Qualification")
+        render(qualification)
 
-    with tab2:
+        st.divider()
+
+        st.subheader("Stakeholder Mapping")
+        render(stakeholders)
+
+        st.divider()
+
+        st.subheader("Risk Analysis")
+        render(risks)
+
+    # =====================================================
+
+    with tabs[1]:
 
         st.subheader("Company Intelligence")
+        render(research)
 
-        render_dictionary(research)
+        st.divider()
 
-    with tab3:
+        st.subheader("Recommended Partner")
 
-        st.subheader("Sales Strategy")
+        if partner:
+            st.markdown(partner)
+        else:
+            st.info("No partner recommendation generated.")
 
-        render_dictionary(strategy)
+    # =====================================================
 
-    with tab4:
+    with tabs[2]:
 
         st.subheader("Recommended FlytBase Solution")
+        render(recommendation)
 
-        render_dictionary(recommendation)
-
-    with tab5:
-
-        st.subheader("Recommended FlytBase Partner")
-
-        st.markdown(partner)
-
-    with tab6:
-
-        st.subheader("Meeting Preparation")
-
-        st.markdown(meeting)
-
-    with tab7:
-
-        st.subheader("Follow-up Email")
-
-        st.markdown(email)
-
-    with tab8:
+        st.divider()
 
         st.subheader("Discovery Questions")
 
-        st.markdown(discovery)
+        if discovery:
+            st.markdown(discovery)
+        else:
+            st.info("Discovery questions unavailable.")
 
-    with tab9:
+    # =====================================================
+
+    with tabs[3]:
+
+        st.subheader("Enterprise Sales Strategy")
+        render(strategy)
+
+        st.divider()
+
+        st.subheader("Meeting Preparation")
+
+        if meeting:
+            st.markdown(meeting)
+        else:
+            st.info("Meeting preparation unavailable.")
+
+    # =====================================================
+
+    with tabs[4]:
+
+        st.subheader("Customer Follow-up Email")
+
+        if email:
+            st.markdown(email)
+        else:
+            st.info("Email not generated.")
+
+        st.divider()
 
         st.subheader("Objection Handling")
+        render(objections)
 
-        render_dictionary(objections)
+    # =====================================================
 
-    with tab10:
-
-        st.subheader("Risk Analysis")
-
-        render_dictionary(risks)
-
-    with tab11:
-
-        st.subheader("Stakeholder Mapping")
-
-        render_dictionary(stakeholders)
-
-    with tab12:
+    with tabs[5]:
 
         st.subheader("CRM Summary")
 
-        st.markdown(crm)
+        if crm:
+            st.markdown(crm)
+        else:
+            st.info("CRM summary unavailable.")
 
-    with tab13:
+        st.divider()
 
         st.subheader("Executive Sales Brief")
 
-        st.markdown(report)
+        if report:
+            st.markdown(report)
+        else:
+            st.info("Sales brief unavailable.")
+
+        st.success("✅ Ready for Sales Review")

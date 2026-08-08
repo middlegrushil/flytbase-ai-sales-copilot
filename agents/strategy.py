@@ -1,55 +1,179 @@
 import json
 
 from utils.gemini_client import ask_gemini
+from utils.parser import extract_json
+from utils.storage import load_json, save_json
 
 
 def create_strategy():
 
-    with open("input/lead.json") as f:
-        lead = json.load(f)
+    print("=" * 80)
+    print("🎯 Enterprise Sales Strategy Agent")
+    print("=" * 80)
 
-    with open("output/qualification.json") as f:
-        qualification = json.load(f)
+    lead = load_json("input/lead.json")
 
-    with open("output/research.json") as f:
-        research = json.load(f)
+    research = load_json("output/research.json")
 
-    prompt = f"""
-You are an Enterprise Sales Manager at FlytBase.
+    qualification = load_json("output/qualification.json")
 
-Below is the lead information.
+    recommendation = load_json("output/recommendation.json")
 
-Lead:
-{json.dumps(lead, indent=2)}
+    case_study = load_json("output/case_study.json")
 
-Qualification:
-{json.dumps(qualification, indent=2)}
+    system_prompt = """
+You are FlytBase's Lead Enterprise Solutions Engineer.
 
-Research:
-{research}
+Build the internal sales strategy.
 
-Your task:
+Think like an Enterprise AE + Solutions Engineer.
 
-Suggest:
+Reasoning order
 
-1. Should Sales pursue this lead?
-2. What should be discussed during the discovery call?
-3. Which FlytBase features solve their pain?
-4. Which FlytBase case studies should be shared?
-5. Biggest risks in this opportunity.
-6. Next best action.
+Customer
+
+↓
+
+Problems
+
+↓
+
+Business Impact
+
+↓
+
+Technical Fit
+
+↓
+
+Commercial Fit
+
+↓
+
+Discovery Plan
+
+↓
+
+Demo Plan
+
+↓
+
+Meeting Success Criteria
 
 Return ONLY valid JSON.
+
+{
+    "pursue_opportunity":true,
+
+    "priority":"High | Medium | Low",
+
+    "meeting_objective":"",
+
+    "why_pursue":[
+        {
+            "reason":"",
+            "evidence":""
+        }
+    ],
+
+    "technical_validation":[
+        {
+            "question":"",
+            "why_it_matters":""
+        }
+    ],
+
+    "commercial_validation":[
+        {
+            "question":"",
+            "why_it_matters":""
+        }
+    ],
+
+    "recommended_demo":[
+        {
+            "feature":"",
+            "business_reasoning":""
+        }
+    ],
+
+    "recommended_stakeholders":[
+        {
+            "role":"",
+            "reason":""
+        }
+    ],
+
+    "technical_risks":[
+        {
+            "risk":"",
+            "mitigation":""
+        }
+    ],
+
+    "commercial_risks":[
+        {
+            "risk":"",
+            "mitigation":""
+        }
+    ],
+
+    "success_criteria":[
+        ""
+    ],
+
+    "next_best_actions":[
+        ""
+    ],
+
+    "confidence":"High | Medium | Low"
+}
+"""
+
+    user_prompt = f"""
+Lead
+
+{json.dumps(lead, indent=2)}
+
+==================================================
+
+Research
+
+{json.dumps(research, indent=2)}
+
+==================================================
+
+Qualification
+
+{json.dumps(qualification, indent=2)}
+
+==================================================
+
+Recommendation
+
+{json.dumps(recommendation, indent=2)}
+
+==================================================
+
+Case Study
+
+{json.dumps(case_study, indent=2)}
+
+Return JSON only.
 """
 
     response = ask_gemini(
-        "You are a sales strategist.",
-        prompt
+        system_prompt,
+        user_prompt,
     )
 
-    with open("output/strategy.json", "w") as f:
-        f.write(response)
+    strategy = extract_json(response)
 
-    print("Strategy completed!")
+    save_json(
+        "output/strategy.json",
+        strategy,
+    )
 
-    return response
+    print("✅ Strategy Generated")
+
+    return strategy

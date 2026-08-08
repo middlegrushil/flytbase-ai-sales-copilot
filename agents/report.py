@@ -1,185 +1,136 @@
 import json
 
 from utils.gemini_client import ask_gemini
+from utils.storage import load_json
 
 
 def generate_report():
 
-    # -----------------------------
-    # Load Files
-    # -----------------------------
-    with open("input/lead.json") as f:
-        lead = json.load(f)
+    print("=" * 80)
+    print("📄 Executive Sales Brief Agent")
+    print("=" * 80)
 
-    with open("output/qualification.json") as f:
-        qualification = json.load(f)
+    lead = load_json("input/lead.json")
+    research = load_json("output/research.json")
+    qualification = load_json("output/qualification.json")
+    recommendation = load_json("output/recommendation.json")
+    strategy = load_json("output/strategy.json")
+    case_study = load_json("output/case_study.json")
+    stakeholders = load_json("output/stakeholders.json")
+    objections = load_json("output/objections.json")
+    risks = load_json("output/risk_analysis.json")
+    next_action = load_json("output/next_action.json")
 
-    with open("output/research.json") as f:
-        research = json.load(f)
+    system_prompt = """
+You are preparing an executive sales brief for FlytBase leadership.
 
-    with open("output/strategy.json") as f:
-        strategy = json.load(f)
+Create a concise executive report.
 
-    with open("output/recommendation.json") as f:
-        recommendation = json.load(f)
+Return MARKDOWN ONLY.
 
-    with open("output/stakeholders.json") as f:
-        stakeholders = json.load(f)
+Structure:
 
-    with open("output/objections.json") as f:
-        objections = json.load(f)
+# Executive Sales Brief
 
-    with open("output/risk_analysis.json") as f:
-        risks = json.load(f)
+## Opportunity Overview
 
-    with open("output/next_action.json") as f:
-        next_action = json.load(f)
+## Customer Summary
 
-    with open("output/meeting_prep.md") as f:
-        meeting_prep = f.read()
+## Qualification
 
-    with open("output/crm_summary.md") as f:
-        crm_summary = f.read()
+## Business Problems
 
-    with open("output/discovery_questions.md") as f:
-        discovery_questions = f.read()
+## Recommended FlytBase Solution
 
-    with open("output/followup_email.md") as f:
-        followup_email = f.read()
+## Similar Customer Success Story
 
-    # -----------------------------
-    # Prompt
-    # -----------------------------
-    prompt = f"""
-You are a Senior Enterprise Sales Consultant at FlytBase.
+## Stakeholders
 
-Prepare a professional INTERNAL SALES BRIEF.
+## Key Risks
 
-Use ONLY the information provided below.
+## Expected Business Value
 
-==================================================
-LEAD
-==================================================
+## Sales Strategy
+
+## Recommended Next Action
+
+## Executive Recommendation
+
+Maximum 1000 words.
+"""
+
+    user_prompt = f"""
+Lead
 
 {json.dumps(lead, indent=2)}
 
 ==================================================
-QUALIFICATION
-==================================================
 
-{json.dumps(qualification, indent=2)}
-
-==================================================
-RESEARCH
-==================================================
+Research
 
 {json.dumps(research, indent=2)}
 
 ==================================================
-STRATEGY
+
+Qualification
+
+{json.dumps(qualification, indent=2)}
+
 ==================================================
 
-{json.dumps(strategy, indent=2)}
-
-==================================================
-RECOMMENDATION
-==================================================
+Recommendation
 
 {json.dumps(recommendation, indent=2)}
 
 ==================================================
-STAKEHOLDERS
+
+Strategy
+
+{json.dumps(strategy, indent=2)}
+
 ==================================================
+
+Case Study
+
+{json.dumps(case_study, indent=2)}
+
+==================================================
+
+Stakeholders
 
 {json.dumps(stakeholders, indent=2)}
 
 ==================================================
-OBJECTIONS
-==================================================
+
+Objections
 
 {json.dumps(objections, indent=2)}
 
 ==================================================
-RISK ANALYSIS
-==================================================
+
+Risks
 
 {json.dumps(risks, indent=2)}
 
 ==================================================
-NEXT ACTION
-==================================================
+
+Next Action
 
 {json.dumps(next_action, indent=2)}
-
-==================================================
-MEETING PREP
-==================================================
-
-{meeting_prep}
-
-==================================================
-CRM SUMMARY
-==================================================
-
-{crm_summary}
-
-==================================================
-DISCOVERY QUESTIONS
-==================================================
-
-{discovery_questions}
-
-==================================================
-FOLLOW-UP EMAIL
-==================================================
-
-{followup_email}
-
-==================================================
-
-Generate a comprehensive sales brief with these sections:
-
-# Executive Summary
-
-# Opportunity Health
-
-# Customer Overview
-
-# MEDDPICC Summary
-
-# Stakeholder Mapping
-
-# Business Challenges
-
-# Recommended FlytBase Solution
-
-# Sales Strategy
-
-# Meeting Preparation
-
-# Discovery Questions
-
-# Customer Objections
-
-# Risk Assessment
-
-# CRM Summary
-
-# Follow-up Plan
-
-# Immediate Next Action
-
-# Executive Takeaway
-
-Return ONLY Markdown.
 """
 
     report = ask_gemini(
-        "You are a Senior Enterprise Sales Consultant.",
-        prompt
+        system_prompt,
+        user_prompt,
     )
 
-    with open("output/sales_brief.md", "w") as f:
+    with open(
+        "output/sales_brief.md",
+        "w",
+        encoding="utf-8",
+    ) as f:
         f.write(report)
 
-    print("Sales brief generated!")
+    print("✅ Executive Sales Brief Generated")
+
+    return report

@@ -1,151 +1,179 @@
 import json
-import os
 
-from utils.gemini import ask_gemini
+from utils.gemini_client import ask_gemini
+from utils.parser import extract_json
+from utils.storage import load_json, save_json
 
 
 def recommend_solution():
-    """
-    Generates a FlytBase-specific solution recommendation by combining:
-    - Lead information
-    - Tavily company research
-    - FlytBase knowledge (Firecrawl)
-    - Similar case study
-    """
 
-    # -------------------------------
-    # Load Lead
-    # -------------------------------
+    print("=" * 80)
+    print("🚁 Solution Recommendation Agent")
+    print("=" * 80)
 
-    with open("input/lead.json") as f:
-        lead = json.load(f)
+    lead = load_json("input/lead.json")
 
-    # -------------------------------
-    # Load Company Research
-    # -------------------------------
+    research = load_json("output/research.json")
 
-    research = {}
+    qualification = load_json("output/qualification.json")
 
-    if os.path.exists("output/research.json"):
-        with open("output/research.json") as f:
-            research = json.load(f)
+    case_study = load_json("output/case_study.json")
 
-    # -------------------------------
-    # Load FlytBase Knowledge
-    # -------------------------------
+    flytbase = load_json("output/flytbase_context.json")
 
-    flytbase = {}
+    solution_info = (
+        flytbase.get("solutions", {})
+        .get("markdown", "")
+    )
 
-    if os.path.exists("output/flytbase_context.json"):
-        with open("output/flytbase_context.json") as f:
-            flytbase = json.load(f)
+    product_info = (
+        flytbase.get("products", {})
+        .get("markdown", "")
+    )
 
-    # -------------------------------
-    # Load Case Study
-    # -------------------------------
+    system_prompt = """
+You are the Lead Enterprise Solutions Engineer at FlytBase.
 
-    case_study = {}
+Your task is to recommend the SINGLE best FlytBase solution.
 
-    if os.path.exists("output/case_study.json"):
-        with open("output/case_study.json") as f:
-            case_study = json.load(f)
+Reasoning order:
 
-    # -------------------------------
-    # Extract Knowledge
-    # -------------------------------
+Customer Facts
 
-    solution_info = flytbase.get("solutions", {}).get("markdown", "")
+↓
 
-    product_info = flytbase.get("products", {}).get("markdown", "")
+Business Problems
 
-    case_info = case_study.get("case_study", "")
+↓
 
-    company = lead.get("company", "")
+Operational Challenges
 
-    industry = lead.get("industry", "")
+↓
 
-    use_case = lead.get("use_case", "")
+FlytBase Capability Mapping
 
-    company_research = research.get("research", "")
+↓
 
-    # -------------------------------
-    # Build Prompt
-    # -------------------------------
+Recommended Product
 
-    prompt = f"""
-You are a Senior Solutions Engineer at FlytBase.
+↓
 
-Your job is to recommend the BEST FlytBase solution for an inbound enterprise customer.
+Expected Business Outcomes
 
-=========================
-LEAD
-=========================
+Never invent information.
 
-Company:
-{company}
+Use only supplied evidence.
 
-Industry:
-{industry}
+Return ONLY valid JSON.
 
-Use Case:
-{use_case}
+{
+    "recommended_solution":{
+        "product":"",
+        "overall_fit_score":0,
+        "confidence":"High | Medium | Low"
+    },
 
-=========================
-COMPANY RESEARCH
-=========================
+    "customer_pain_points":[
+        {
+            "pain":"",
+            "evidence":""
+        }
+    ],
 
-{company_research}
+    "solution_mapping":[
+        {
+            "customer_need":"",
+            "flytbase_capability":"",
+            "technical_reasoning":"",
+            "business_reasoning":""
+        }
+    ],
 
-=========================
-FLYTBASE SOLUTIONS
-=========================
+    "business_value":[
+        {
+            "benefit":"",
+            "expected_impact":""
+        }
+    ],
+
+    "implementation_plan":[
+        ""
+    ],
+
+    "risks":[
+        {
+            "risk":"",
+            "mitigation":""
+        }
+    ],
+
+    "similar_case_study":{
+        "customer":"",
+        "similarity":"",
+        "why_relevant":""
+    },
+
+    "alternative_products":[
+        {
+            "product":"",
+            "why_not_selected":""
+        }
+    ],
+
+    "executive_summary":""
+}
+"""
+
+    user_prompt = f"""
+Lead
+
+{json.dumps(lead, indent=2)}
+
+==================================================
+
+Research
+
+{json.dumps(research, indent=2)}
+
+==================================================
+
+Qualification
+
+{json.dumps(qualification, indent=2)}
+
+==================================================
+
+Case Study
+
+{json.dumps(case_study, indent=2)}
+
+==================================================
+
+FlytBase Solutions
 
 {solution_info}
 
-=========================
-FLYTBASE PRODUCTS
-=========================
+==================================================
+
+FlytBase Products
 
 {product_info}
 
-=========================
-SIMILAR CASE STUDY
-=========================
-
-{case_info}
-
-=========================
-
-Prepare a recommendation including:
-
-1. Customer pain points
-
-2. Recommended FlytBase products
-
-3. Why these products fit
-
-4. Expected ROI
-
-5. Implementation roadmap
-
-6. Risks
-
-7. Mention the similar FlytBase customer success story naturally.
-
-Return clean markdown.
+Return JSON only.
 """
 
-    recommendation = ask_gemini(prompt)
+    response = ask_gemini(
+        system_prompt,
+        user_prompt,
+    )
 
-    os.makedirs("output", exist_ok=True)
+    recommendation = extract_json(response)
 
-    with open("output/recommendation.json", "w") as f:
-        json.dump(
-            {
-                "recommendation": recommendation
-            },
-            f,
-            indent=4,
-        )
+    save_json(
+        "output/recommendation.json",
+        recommendation,
+    )
 
-    print("✅ Recommendation generated.")
+    print("✅ Recommendation Generated")
+
+    return recommendation

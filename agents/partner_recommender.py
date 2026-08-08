@@ -1,79 +1,94 @@
 import json
-import os
 
-from utils.gemini import ask_gemini
+from utils.gemini_client import ask_gemini
+from utils.storage import load_json
 
 
 def recommend_partner():
-    """
-    Recommend the best FlytBase implementation partner
-    for the inbound customer.
-    """
 
-    if not os.path.exists("input/lead.json"):
-        print("❌ lead.json not found")
-        return
+    print("=" * 80)
+    print("🤝 Partner Recommendation Agent")
+    print("=" * 80)
 
-    if not os.path.exists("output/flytbase_context.json"):
-        print("❌ flytbase_context.json not found")
-        return
+    lead = load_json("input/lead.json")
+    research = load_json("output/research.json")
+    recommendation = load_json("output/recommendation.json")
+    flytbase = load_json("output/flytbase_context.json")
 
-    with open("input/lead.json", "r") as f:
-        lead = json.load(f)
+    partner_library = (
+        flytbase.get("partners", {})
+        .get("markdown", "")
+    )
 
-    with open("output/flytbase_context.json", "r") as f:
-        flytbase = json.load(f)
+    system_prompt = """
+You are FlytBase's Global Partner Manager.
 
-    partners = flytbase.get("partners", {})
-    markdown = partners.get("markdown", "")
+Recommend the SINGLE best implementation partner.
 
-    prompt = f"""
-You are a FlytBase Partner Manager.
+Reason using:
 
-A new enterprise lead has arrived.
+• Geography
+• Industry
+• Customer profile
+• Technical capability
+• Deployment requirements
 
-Lead Details:
+Return MARKDOWN ONLY.
 
-{json.dumps(lead, indent=2)}
-
-Below is FlytBase's partner ecosystem.
-
-{markdown}
-
-Your task:
-
-Recommend the BEST implementation partner for this customer.
-
-Return ONLY markdown.
-
-Use the following format:
+Use this structure:
 
 # Recommended Partner
 
-Partner Name
+## Partner
 
-# Why this Partner
+## Why this partner
 
-Explain why it fits this customer.
+## Relevant capabilities
 
-# Relevant Experience
+## Expected implementation support
 
-Mention industries, geography or deployment expertise.
+## Risks
 
-# Deployment Advantages
-
-Explain why this partner can help.
-
-# Suggested Introduction
-
-Write a short paragraph the sales team can use.
+## Why other partners were not selected
 """
 
-    recommendation = ask_gemini(prompt)
+    user_prompt = f"""
+Lead
 
-    os.makedirs("output", exist_ok=True)
+{json.dumps(lead, indent=2)}
 
-    with open("output/partner_recommendation.md", "w") as f:
-        f.write(recommendation)
+==================================================
 
-    print("✅ Partner recommendation generated.")
+Research
+
+{json.dumps(research, indent=2)}
+
+==================================================
+
+Recommendation
+
+{json.dumps(recommendation, indent=2)}
+
+==================================================
+
+FlytBase Partner Library
+
+{partner_library}
+"""
+
+    partner = ask_gemini(
+        system_prompt,
+        user_prompt,
+    )
+
+    with open(
+        "output/partner_recommendation.md",
+        "w",
+        encoding="utf-8",
+    ) as f:
+
+        f.write(partner)
+
+    print("✅ Partner Recommendation Generated")
+
+    return partner

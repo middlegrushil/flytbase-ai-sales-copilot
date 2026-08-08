@@ -1,9 +1,14 @@
-from utils.gemini_client import ask_gemini
+from google import genai
+from dotenv import load_dotenv
+import os
 
-system_prompt = "You are a helpful assistant."
+load_dotenv()
 
-user_prompt = "Reply with exactly: Gemini API connection successful."
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-response = ask_gemini(system_prompt, user_prompt)
+response = client.models.generate_content(
+    model="gemini-3.5-flash",
+    contents="Say hello in one word."
+)
 
-print(response)
+print(response.text)

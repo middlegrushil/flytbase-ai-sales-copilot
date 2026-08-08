@@ -1,34 +1,46 @@
 import json
 
 from utils.gemini_client import ask_gemini
+from utils.parser import extract_json
+from utils.storage import load_json, save_json
 
 
-def generate_objections():
+def handle_objections():
 
-    with open("output/research.json") as f:
-        research = json.load(f)
+    print("=" * 80)
+    print("🛡️ Objection Handling Agent")
+    print("=" * 80)
 
-    with open("output/strategy.json") as f:
-        strategy = json.load(f)
-
-    with open("output/recommendation.json") as f:
-        recommendation = json.load(f)
+    research = load_json("output/research.json")
+    recommendation = load_json("output/recommendation.json")
+    strategy = load_json("output/strategy.json")
 
     system_prompt = """
-You are a Senior Solutions Engineer at FlytBase.
+You are a Senior Enterprise Solutions Engineer at FlytBase.
 
-Predict the customer's most likely objections.
+Predict the most likely customer objections.
 
 For each objection provide:
 
 - objection
-- why they might have it
-- recommended response
+- why_customer_might_raise_it
+- recommended_response
+- supporting_evidence
 - confidence
 
-Return valid JSON.
+Return ONLY valid JSON.
 
-Do not use markdown.
+{
+  "objections":[
+    {
+      "objection":"",
+      "why_customer_might_raise_it":"",
+      "recommended_response":"",
+      "supporting_evidence":"",
+      "confidence":"High | Medium | Low"
+    }
+  ]
+}
 """
 
     user_prompt = f"""
@@ -36,18 +48,33 @@ Research
 
 {json.dumps(research, indent=2)}
 
-Strategy
-
-{json.dumps(strategy, indent=2)}
+==================================================
 
 Recommendation
 
 {json.dumps(recommendation, indent=2)}
+
+==================================================
+
+Strategy
+
+{json.dumps(strategy, indent=2)}
+
+Return JSON only.
 """
 
-    response = ask_gemini(system_prompt, user_prompt)
+    response = ask_gemini(
+        system_prompt,
+        user_prompt,
+    )
 
-    with open("output/objections.json", "w") as f:
-        f.write(response)
+    objections = extract_json(response)
 
-    print("Objection analysis completed!")
+    save_json(
+        "output/objections.json",
+        objections,
+    )
+
+    print("✅ Objection Analysis Completed")
+
+    return objections

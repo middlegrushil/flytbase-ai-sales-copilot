@@ -8,29 +8,36 @@ client = genai.Client(
     api_key=os.getenv("GEMINI_API_KEY")
 )
 
+MODEL = "gemini-3.5-flash"
+
+
 def ask_gemini(system_prompt, user_prompt):
 
     response = client.models.generate_content(
-        model="gemini-3.1-flash-lite",
-        contents=f"""
-System:
+
+        model=MODEL,
+
+        contents=[
+            {
+                "role": "user",
+                "parts": [
+                    {
+                        "text":
+f"""
+SYSTEM
+
 {system_prompt}
 
-User:
+------------------------------------------------
+
+USER
+
 {user_prompt}
 """
+                    }
+                ]
+            }
+        ],
     )
 
-    text = response.text.strip()
-
-    # Remove markdown code fences if Gemini returns them
-    if text.startswith("```json"):
-        text = text.replace("```json", "", 1)
-
-    if text.startswith("```"):
-        text = text.replace("```", "", 1)
-
-    if text.endswith("```"):
-        text = text[:-3]
-
-    return text.strip()
+    return response.text.strip()

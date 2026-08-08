@@ -1,72 +1,81 @@
 import json
+
 from utils.gemini_client import ask_gemini
+from utils.parser import extract_json
+from utils.storage import load_json, save_json
+
 
 def qualify_lead():
 
-    with open("input/lead.json", "r") as f:
-        lead = json.load(f)
+    print("=" * 80)
+    print("📈 Lead Qualification Agent")
+    print("=" * 80)
+
+    lead = load_json("input/lead.json")
+    research = load_json("output/research.json")
 
     system_prompt = """
-You are an Enterprise Solutions Engineer at FlytBase.
+You are FlytBase's Enterprise Sales Qualification Specialist.
 
-Your task is to qualify inbound enterprise leads using the MEDDIC framework while also evaluating the overall business opportunity.
+Evaluate the opportunity.
 
-IMPORTANT:
-Do NOT assign extremely low scores simply because some MEDDIC information is missing.
+Use BOTH:
 
-The qualification score should represent the overall sales opportunity, not just the completeness of information.
+1. Lead information
+2. Company research
 
-When calculating the score, consider:
-
-- Industry fit for FlytBase
-- Company size and enterprise potential
-- Relevance of the use case
-- Seniority of the contact
-- Likelihood of adopting autonomous drone solutions
-- MEDDIC completeness
-
-Scoring Guidelines:
-
-90–100:
-Excellent enterprise opportunity with strong fit and clear buying signals.
-
-75–89:
-High-potential enterprise lead. Some discovery is still required.
-
-60–74:
-Good opportunity but several qualification questions remain unanswered.
-
-40–59:
-Possible opportunity that requires significant discovery.
-
-0–39:
-Poor fit or insufficient information.
-
-Missing information should reduce the score moderately, but should NEVER reduce an otherwise excellent enterprise lead below 60.
-
-Return ONLY valid JSON using exactly this format:
+Return ONLY valid JSON.
 
 {
-  "qualification_score": 0,
-  "metrics": "",
-  "economic_buyer": "",
-  "decision_criteria": "",
-  "decision_process": "",
-  "identify_pain": "",
-  "champion": "",
-  "missing_information": [],
-  "reasoning": ""
+  "qualification_score":0,
+  "priority":"High | Medium | Low",
+  "industry_fit":"",
+  "use_case_fit":"",
+  "company_size_fit":"",
+  "automation_readiness":"",
+  "decision_process":"",
+  "budget_signal":"",
+  "timeline_signal":"",
+  "pain_points":[
+      ""
+  ],
+  "strengths":[
+      ""
+  ],
+  "risks":[
+      ""
+  ],
+  "qualification_summary":"",
+  "confidence":"High | Medium | Low"
 }
+"""
+
+    user_prompt = f"""
+Lead
+
+{json.dumps(lead, indent=2)}
+
+==================================================
+
+Research
+
+{json.dumps(research, indent=2)}
+
+Return JSON only.
 """
 
     response = ask_gemini(
         system_prompt,
-        json.dumps(lead, indent=2)
+        user_prompt,
     )
 
-    with open("output/qualification.json", "w") as f:
-        f.write(response)
+    qualification = extract_json(response)
 
-    print("Lead qualified successfully!")
+    save_json(
+        "output/qualification.json",
+        qualification,
+    )
 
-    return response
+    print("✅ Qualification Completed")
+
+    return qualification

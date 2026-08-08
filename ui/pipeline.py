@@ -1,89 +1,228 @@
-import time
+import os
+
 import streamlit as st
 
-from agents.qualification import qualify_lead
 from agents.firecrawl_research import firecrawl_research
 from agents.case_study_matcher import match_case_study
-from agents.research import research_company
+from agents.qualification import qualify_lead
+from agents.research import company_research
 from agents.strategy import create_strategy
 from agents.recommendation import recommend_solution
-from agents.partner_recommender import recommend_partner
 from agents.meeting_prep import generate_meeting_prep
 from agents.email_generator import generate_email
 from agents.discovery_questions import generate_discovery_questions
-from agents.objection_handler import generate_objections
+from agents.objection_handler import handle_objections
 from agents.risk_analysis import analyze_risks
 from agents.stakeholder import identify_stakeholders
+from agents.partner_recommender import recommend_partner
 from agents.crm_summary import generate_crm_summary
-from agents.next_action import generate_next_action
+from agents.next_action import recommend_next_action
 from agents.report import generate_report
+
+
+PIPELINE = [
+
+    (
+        "Building FlytBase Knowledge Base",
+        firecrawl_research,
+        [
+            "output/flytbase_context.json",
+        ],
+    ),
+
+    (
+        "Matching Similar Customer Case Study",
+        match_case_study,
+        [
+            "output/case_study.json",
+        ],
+    ),
+
+    (
+        "Qualifying Enterprise Lead",
+        qualify_lead,
+        [
+            "output/qualification.json",
+        ],
+    ),
+
+    (
+        "Researching Company",
+        company_research,
+        [
+            "output/research.json",
+        ],
+    ),
+
+    (
+        "Creating Sales Strategy",
+        create_strategy,
+        [
+            "output/strategy.json",
+        ],
+    ),
+
+    (
+        "Generating Solution Recommendation",
+        recommend_solution,
+        [
+            "output/recommendation.json",
+        ],
+    ),
+
+    (
+        "Preparing Meeting",
+        generate_meeting_prep,
+        [
+            "output/meeting_prep.md",
+        ],
+    ),
+
+    (
+        "Generating Follow-up Email",
+        generate_email,
+        [
+            "output/email.md",
+        ],
+    ),
+
+    (
+        "Generating Discovery Questions",
+        generate_discovery_questions,
+        [
+            "output/discovery_questions.md",
+        ],
+    ),
+
+    (
+        "Handling Customer Objections",
+        handle_objections,
+        [
+            "output/objections.json",
+        ],
+    ),
+
+    (
+        "Performing Risk Analysis",
+        analyze_risks,
+        [
+            "output/risk_analysis.json",
+        ],
+    ),
+
+    (
+        "Identifying Stakeholders",
+        identify_stakeholders,
+        [
+            "output/stakeholders.json",
+        ],
+    ),
+
+    (
+        "Recommending Partner",
+        recommend_partner,
+        [
+            "output/partner_recommendation.md",
+        ],
+    ),
+
+    (
+        "Generating CRM Summary",
+        generate_crm_summary,
+        [
+            "output/crm_summary.md",
+        ],
+    ),
+
+    (
+        "Determining Next Action",
+        recommend_next_action,
+        [
+            "output/next_action.json",
+        ],
+    ),
+
+    (
+        "Generating Executive Report",
+        generate_report,
+        [
+            "output/sales_brief.md",
+        ],
+    ),
+
+]
+
+
+def output_exists(paths):
+
+    if not paths:
+        return False
+
+    return all(
+        os.path.exists(path)
+        and os.path.getsize(path) > 0
+        for path in paths
+    )
 
 
 def run_pipeline():
 
-    st.subheader("🤖 AI Workflow")
+    os.makedirs("output", exist_ok=True)
 
     progress = st.progress(0)
 
     status = st.empty()
 
-    pipeline = [
+    total = len(PIPELINE)
 
-        ("Firecrawl Knowledge Base", firecrawl_research),
+    completed = 0
 
-        ("Lead Qualification", qualify_lead),
+    for title, func, output_files in PIPELINE:
 
-        ("Company Research", research_company),
+        completed += 1
 
-        ("Case Study Matching", match_case_study),
+        # ==================================================
+        # CACHE CHECK
+        # ==================================================
 
-        ("Sales Strategy", create_strategy),
+        if output_exists(output_files):
 
-        ("Solution Recommendation", recommend_solution),
+            status.info(
+                f"♻️ Using existing result — {title}"
+            )
 
-        ("Partner Recommendation", recommend_partner),
+            progress.progress(
+                completed / total
+            )
 
-        ("Meeting Preparation", generate_meeting_prep),
+            continue
 
-        ("Follow-up Email", generate_email),
+        # ==================================================
+        # RUN AGENT
+        # ==================================================
 
-        ("Discovery Questions", generate_discovery_questions),
-
-        ("Objection Handling", generate_objections),
-
-        ("Risk Analysis", analyze_risks),
-
-        ("Stakeholder Mapping", identify_stakeholders),
-
-        ("CRM Summary", generate_crm_summary),
-
-        ("Next Best Action", generate_next_action),
-
-        ("Executive Sales Brief", generate_report)
-
-    ]
-
-    total_steps = len(pipeline)
-
-    for i, (step_name, function) in enumerate(pipeline):
-
-        status.info(f"⚙️ Running **{step_name}**...")
+        status.info(
+            f"🚀 {title}"
+        )
 
         try:
-            function()
+
+            func()
 
         except Exception as e:
 
-            st.error(f"❌ {step_name} failed")
+            status.error(
+                f"❌ {title}"
+            )
 
             st.exception(e)
 
-            return
+            raise
 
-        progress.progress((i + 1) / total_steps)
+        progress.progress(
+            completed / total
+        )
 
-        time.sleep(0.2)
-
-    status.success("✅ AI Workflow Completed Successfully!")
-
-    st.success("🎉 FlytBase AI Sales Copilot has completed the analysis.")
+    status.success(
+        "✅ Enterprise opportunity successfully analyzed."
+    )

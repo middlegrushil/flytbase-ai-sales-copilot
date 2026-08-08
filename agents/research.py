@@ -1,53 +1,101 @@
 import json
 
-from utils.gemini_client import ask_gemini
 from utils.tavily import search_company
+from utils.gemini_client import ask_gemini
+from utils.parser import extract_json
+from utils.storage import load_json, save_json
 
 
-def research_company():
+def company_research():
 
-    with open("input/lead.json") as f:
-        lead = json.load(f)
+    print("=" * 80)
+    print("🏢 Company Research Agent")
+    print("=" * 80)
 
-    company = lead["company_name"]
+    lead = load_json("input/lead.json")
+
+    company = lead.get("company_name", "")
+
+    if not company:
+        raise ValueError("company_name missing in lead.json")
 
     tavily = search_company(company)
 
-    articles = []
+    raw_results = tavily.get("results", [])
 
-    for result in tavily["results"]:
+    search_context = ""
 
-        articles.append({
-            "title": result["title"],
-            "url": result["url"],
-            "content": result["content"]
-        })
+    for i, result in enumerate(raw_results, start=1):
 
-    system_prompt = """
-You are an Enterprise Account Research Analyst.
+        search_context += f"""
+Result {i}
 
-Summarize the company research.
+Title:
+{result.get('title','')}
 
-Focus on:
+URL:
+{result.get('url','')}
 
-- Company overview
-- Operations
-- Industry
-- Recent initiatives
-- Drone usage
-- Automation initiatives
-- Inspection processes
-- Digital transformation
-- Business opportunities for FlytBase
-
-Return valid JSON only.
+Content:
+{result.get('content','')}
 """
 
-    user_prompt = json.dumps(articles, indent=2)
+    system_prompt = """
+You are FlytBase's Enterprise Research Analyst.
 
-    response = ask_gemini(system_prompt, user_prompt)
+Create structured company intelligence.
 
-    with open("output/research.json", "w") as f:
-        f.write(response)
+Return ONLY valid JSON.
 
-    print("Research completed!")
+{
+  "company_overview":"",
+  "industry":"",
+  "headquarters":"",
+  "employee_estimate":"",
+  "business_model":"",
+  "recent_news":[
+      ""
+  ],
+  "drone_relevance":"",
+  "automation_maturity":"",
+  "business_challenges":[
+      ""
+  ],
+  "opportunities":[
+      ""
+  ],
+  "sources":[
+      ""
+  ]
+}
+"""
+
+    user_prompt = f"""
+Company
+
+{company}
+
+==================================================
+
+Search Results
+
+{search_context}
+
+Return JSON only.
+"""
+
+    response = ask_gemini(
+        system_prompt,
+        user_prompt,
+    )
+
+    research = extract_json(response)
+
+    save_json(
+        "output/research.json",
+        research,
+    )
+
+    print("✅ Research Completed")
+
+    return research

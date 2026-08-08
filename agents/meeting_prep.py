@@ -1,33 +1,49 @@
 import json
 
 from utils.gemini_client import ask_gemini
+from utils.storage import load_json
 
 
 def generate_meeting_prep():
 
-    with open("input/lead.json") as f:
-        lead = json.load(f)
+    print("=" * 80)
+    print("📅 Meeting Preparation Agent")
+    print("=" * 80)
 
-    with open("output/qualification.json") as f:
-        qualification = json.load(f)
-
-    with open("output/research.json") as f:
-        research = json.load(f)
-
-    with open("output/strategy.json") as f:
-        strategy = json.load(f)
-
-    with open("output/recommendation.json") as f:
-        recommendation = json.load(f)
+    lead = load_json("input/lead.json")
+    research = load_json("output/research.json")
+    qualification = load_json("output/qualification.json")
+    recommendation = load_json("output/recommendation.json")
+    strategy = load_json("output/strategy.json")
+    case_study = load_json("output/case_study.json")
 
     system_prompt = """
-You are a Senior Solutions Engineer at FlytBase.
+You are the Lead Enterprise Solutions Engineer at FlytBase.
 
-Prepare a concise but detailed meeting preparation document for the Account Executive.
+Prepare an internal meeting brief.
 
-Use ONLY the provided information.
+Include:
 
-Return the response in Markdown.
+- Customer overview
+- Business problems
+- Qualification summary
+- Recommended FlytBase solution
+- Relevant customer success story
+- Stakeholders to engage
+- Discovery priorities
+- Technical validation topics
+- Demo focus
+- Success criteria
+- Risks
+- Next actions
+
+Return MARKDOWN ONLY.
+
+Use headings and bullet points.
+
+Keep it professional.
+
+Maximum 800 words.
 """
 
     user_prompt = f"""
@@ -35,54 +51,50 @@ Lead
 
 {json.dumps(lead, indent=2)}
 
-Qualification
-
-{json.dumps(qualification, indent=2)}
+==================================================
 
 Research
 
 {json.dumps(research, indent=2)}
 
-Strategy
+==================================================
 
-{json.dumps(strategy, indent=2)}
+Qualification
+
+{json.dumps(qualification, indent=2)}
+
+==================================================
 
 Recommendation
 
 {json.dumps(recommendation, indent=2)}
 
-Generate the following sections.
+==================================================
 
-# Meeting Objective
+Strategy
 
-# Customer Overview
+{json.dumps(strategy, indent=2)}
 
-# Attendees
+==================================================
 
-# Business Challenges
+Case Study
 
-# Key Talking Points
-
-# Discovery Questions
-
-Generate 10 questions.
-
-# Recommended Demo Flow
-
-Describe a recommended demo sequence.
-
-# Likely Customer Objections
-
-# Success Criteria
-
-How will we know this meeting was successful?
-
-# Immediate Next Steps
+{json.dumps(case_study, indent=2)}
 """
 
-    response = ask_gemini(system_prompt, user_prompt)
+    meeting = ask_gemini(
+        system_prompt,
+        user_prompt,
+    )
 
-    with open("output/meeting_prep.md", "w") as f:
-        f.write(response)
+    with open(
+        "output/meeting_prep.md",
+        "w",
+        encoding="utf-8",
+    ) as f:
 
-    print("Meeting prep generated!")
+        f.write(meeting)
+
+    print("✅ Meeting Preparation Generated")
+
+    return meeting

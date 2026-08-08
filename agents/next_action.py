@@ -1,34 +1,43 @@
 import json
 
 from utils.gemini_client import ask_gemini
+from utils.parser import extract_json
+from utils.storage import load_json, save_json
 
 
-def generate_next_action():
+def recommend_next_action():
 
-    with open("output/qualification.json") as f:
-        qualification = json.load(f)
+    print("=" * 80)
+    print("➡️ Next Action Agent")
+    print("=" * 80)
 
-    with open("output/strategy.json") as f:
-        strategy = json.load(f)
+    qualification = load_json("output/qualification.json")
+    recommendation = load_json("output/recommendation.json")
+    strategy = load_json("output/strategy.json")
+    risks = load_json("output/risk_analysis.json")
 
     system_prompt = """
-You are a Sales Manager.
+You are FlytBase's Enterprise Sales Coach.
 
-Recommend the immediate next sales action.
+Determine the SINGLE best next action.
 
-Return JSON only.
+Consider:
 
-Fields:
+- Qualification
+- Risks
+- Strategy
+- Recommended solution
 
-priority
+Return ONLY valid JSON.
 
-owner
-
-action
-
-timeline
-
-reason
+{
+    "next_action":"",
+    "owner":"",
+    "priority":"High | Medium | Low",
+    "timeline":"",
+    "reason":"",
+    "expected_outcome":""
+}
 """
 
     user_prompt = f"""
@@ -36,14 +45,39 @@ Qualification
 
 {json.dumps(qualification, indent=2)}
 
+==================================================
+
+Recommendation
+
+{json.dumps(recommendation, indent=2)}
+
+==================================================
+
 Strategy
 
 {json.dumps(strategy, indent=2)}
+
+==================================================
+
+Risk Analysis
+
+{json.dumps(risks, indent=2)}
+
+Return JSON only.
 """
 
-    response = ask_gemini(system_prompt, user_prompt)
+    response = ask_gemini(
+        system_prompt,
+        user_prompt,
+    )
 
-    with open("output/next_action.json", "w") as f:
-        f.write(response)
+    next_action = extract_json(response)
 
-    print("Next action generated!")
+    save_json(
+        "output/next_action.json",
+        next_action,
+    )
+
+    print("✅ Next Action Generated")
+
+    return next_action

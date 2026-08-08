@@ -1,27 +1,32 @@
 import streamlit as st
+from components.metrics import show_metrics
 
 # ==========================================================
 # PAGE CONFIG
 # ==========================================================
 
 st.set_page_config(
-    page_title="FlytBase AI Sales Copilot",
+    page_title="FlytBase Enterprise Sales Intelligence Platform",
     page_icon="🚁",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
 # ==========================================================
-# CUSTOM CSS
+# LOAD CSS
 # ==========================================================
 
 try:
+
     with open("styles.css") as f:
+
         st.markdown(
             f"<style>{f.read()}</style>",
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
-except:
+
+except Exception:
+
     pass
 
 # ==========================================================
@@ -30,14 +35,19 @@ except:
 
 from components.hero import show_hero
 from components.sidebar import show_sidebar
-from components.metric_cards import show_metric_cards
-from components.dashboard import show_dashboard
-from components.charts import show_charts
+from components.executive_dashboard import (
+    show_executive_dashboard,
+)
+from components.company_snapshot import (
+    show_company_snapshot,
+)
 from components.tabs import show_tabs
-from components.download_buttons import show_download_buttons
+from components.download_buttons import (
+    show_download_buttons,
+)
 
 # ==========================================================
-# UI
+# UI PIPELINE
 # ==========================================================
 
 from ui.upload import upload_lead
@@ -57,7 +67,31 @@ show_sidebar()
 show_hero()
 
 # ==========================================================
-# UPLOAD
+# PAGE INTRO
+# ==========================================================
+
+st.markdown(
+"""
+### Enterprise AI Decision Support
+
+This platform assists **FlytBase Solutions Engineers**
+by automating enterprise lead qualification,
+company intelligence gathering,
+solution recommendation,
+case study matching,
+meeting preparation,
+and executive sales documentation.
+
+The platform follows a modular AI workflow where
+each specialized agent contributes structured
+business intelligence to support sales decisions.
+"""
+)
+
+st.divider()
+
+# ==========================================================
+# LEAD INPUT
 # ==========================================================
 
 uploaded = upload_lead()
@@ -66,17 +100,25 @@ uploaded = upload_lead()
 # MAIN
 # ==========================================================
 
+# ==========================================================
+# MAIN APPLICATION
+# ==========================================================
+
 if uploaded:
 
     st.divider()
 
-    if st.button(
-        "🚀 Analyze Lead",
+    analyze = st.button(
+        "🚀 Analyze Enterprise Lead",
+        type="primary",
         use_container_width=True,
-        type="primary"
-    ):
+    )
 
-        with st.spinner("Running AI Sales Copilot..."):
+    if analyze:
+
+        with st.spinner(
+            "Running Enterprise Sales Intelligence Pipeline..."
+        ):
 
             run_pipeline()
 
@@ -91,193 +133,112 @@ if uploaded:
         risks = outputs["risk_analysis"]
         stakeholders = outputs["stakeholders"]
         next_action = outputs["next_action"]
-        meeting = outputs["meeting_prep"]
-        email = outputs["followup_email"]
-        discovery = outputs["discovery_questions"]
-        crm = outputs["crm_summary"]
-        report = outputs["sales_brief"]
-        partner = outputs["partner_recommendation"]
+        meeting = (
+    outputs.get("meeting_prep")
+    or ""
+)
+        email = (
+    outputs.get("followup_email")
+    or outputs.get("email")
+    or ""
+)
+        discovery = (
+    outputs.get("discovery_questions")
+    or ""
+)
+        crm = (
+    outputs.get("crm_summary")
+    or ""
+)
+        report = (
+    outputs.get("sales_brief")
+    or ""
+)
+        partner = (
+    outputs.get("partner_recommendation")
+    or ""
+)
 
-        st.success("🎉 Analysis Completed Successfully!")
-
-        # ==========================================================
-        # EXECUTIVE METRICS
-        # ==========================================================
-
-        c1, c2, c3, c4 = st.columns(4)
-
-        with c1:
-            st.metric("AI Agents", "14")
-
-        with c2:
-            st.metric("Knowledge Sources", "3")
-
-        with c3:
-            st.metric("Case Studies", "✓")
-
-        with c4:
-            score = qualification.get("qualification_score", 0)
-            st.metric("Qualification", f"{score}/100")
-
-        st.progress(score / 100 if score else 0)
-
-        st.divider()
-
-        # ==========================================================
-        # DASHBOARD
-        # ==========================================================
-
-        show_metric_cards(
-            qualification,
-            research
+        st.success(
+            "Enterprise opportunity successfully analyzed."
         )
 
-        st.divider()
+        # =====================================================
+        # EXECUTIVE DASHBOARD
+        # =====================================================
 
-        show_dashboard(
-            qualification,
-            research,
-            recommendation,
-            next_action
+        show_executive_dashboard(
+            qualification=qualification,
+            research=research,
+            recommendation=recommendation,
+            next_action=next_action,
         )
-
-        st.divider()
-
-        show_charts(
-            qualification
-        )
-
-        st.divider()
-
-        # ==========================================================
-        # COMPANY SNAPSHOT
-        # ==========================================================
-
-        left, right = st.columns([2, 1])
-
-        with left:
-
-            st.subheader("🏢 Company Overview")
-
-            st.info(
-                research.get(
-                    "company_overview",
-                    "No company overview available."
-                )
-            )
-
-            st.subheader("🚁 Recommended Solution")
-
-            if isinstance(recommendation, dict):
-
-                st.markdown(
-                    recommendation.get(
-                        "recommendation",
-                        str(recommendation)
-                    )
-                )
-
-            else:
-
-                st.markdown(recommendation)
-
-            st.subheader("📚 Similar FlytBase Case Study")
-
-            if isinstance(case_study, dict):
-
-                st.markdown(
-                    case_study.get(
-                        "case_study",
-                        "No case study found."
-                    )
-                )
-
-            else:
-
-                st.markdown(case_study)
-
-        with right:
-
-            st.subheader("Quick Stats")
-
-            st.metric(
-                "Industry",
-                research.get("industry", "Unknown")
-            )
-
-            st.metric(
-                "Champion",
-                qualification.get("champion", "Unknown")
-            )
-
-            st.metric(
-                "Economic Buyer",
-                qualification.get(
-                    "economic_buyer",
-                    "Unknown"
-                )
-            )
-
-            if score >= 80:
-
-                st.success("🟢 High Opportunity")
-
-            elif score >= 60:
-
-                st.warning("🟡 Medium Opportunity")
-
-            else:
-
-                st.error("🔴 Low Opportunity")
-
-        st.divider()
-
-        # ==========================================================
-        # AGENT OUTPUTS
-        # ==========================================================
-
-        show_tabs(
+        show_metrics(
     qualification=qualification,
     research=research,
-    strategy=strategy,
-    recommendation=recommendation,
-    partner=partner,
-    meeting=meeting,
-    email=email,
-    discovery=discovery,
-    objections=objections,
-    risks=risks,
     stakeholders=stakeholders,
-    crm=crm,
-    report=report
 )
 
         st.divider()
 
-        # ==========================================================
-        # NEXT ACTION
-        # ==========================================================
+        # =====================================================
+        # COMPANY INTELLIGENCE
+        # =====================================================
 
-        st.header("➡️ Recommended Next Action")
-
-        if isinstance(next_action, dict):
-
-            st.success(
-                next_action.get(
-                    "next_action",
-                    "No recommendation."
-                )
-            )
-
-        else:
-
-            st.success(next_action)
+        show_company_snapshot(
+    research=research,
+    recommendation=recommendation,
+    case_study=case_study,
+    qualification=qualification,
+    stakeholders=stakeholders,
+)
 
         st.divider()
 
-        # ==========================================================
+        # =====================================================
+        # AI ANALYSIS
+        # =====================================================
+
+        st.header("🧠 Enterprise AI Analysis")
+
+        st.caption(
+            """
+Each section below represents a specialized AI agent
+within the FlytBase Enterprise Sales Intelligence workflow.
+The agents work together to transform an inbound lead
+into an executive-ready sales opportunity.
+"""
+        )
+
+        show_tabs(
+            qualification=qualification,
+            research=research,
+            strategy=strategy,
+            recommendation=recommendation,
+            partner=partner,
+            meeting=meeting,
+            email=email,
+            discovery=discovery,
+            objections=objections,
+            risks=risks,
+            stakeholders=stakeholders,
+            crm=crm,
+            report=report,
+        )
+
+        st.divider()
+
+        # =====================================================
         # DOWNLOADS
-        # ==========================================================
+        # =====================================================
+
+        st.header("📥 Export Sales Assets")
+
+        st.caption(
+            "Download AI-generated artifacts for CRM, meetings and customer engagement."
+        )
+
+        
 
         show_download_buttons()
 
@@ -285,41 +246,54 @@ else:
 
     st.divider()
 
-    st.info(
+    st.markdown(
         """
-### Welcome to FlytBase AI Sales Copilot
+# 🚁 FlytBase Enterprise Sales Intelligence Platform
 
-Upload a Lead JSON file to begin.
+Transform enterprise inbound leads into actionable sales opportunities using an explainable multi-agent AI workflow.
 
-The platform will automatically:
+---
 
-✅ Build FlytBase Knowledge Base
+## What this platform does
 
-✅ Match Similar Case Study
+Instead of manually researching every customer, the platform automatically performs:
 
-✅ Qualify Lead
+✅ Lead Qualification
 
-✅ Research Company
+✅ Company Intelligence
 
-✅ Recommend FlytBase Solution
+✅ Solution Recommendation
 
-✅ Prepare Meeting Notes
+✅ Customer Case Study Matching
 
-✅ Generate Email
+✅ Partner Recommendation
 
-✅ Generate Discovery Questions
+✅ Meeting Preparation
 
-✅ Handle Objections
+✅ Discovery Question Generation
 
-✅ Analyze Risks
+✅ Objection Handling
 
-✅ Map Stakeholders
+✅ Risk Assessment
 
-✅ Generate CRM Summary
+✅ Stakeholder Mapping
 
-✅ Generate Executive Sales Brief
+✅ CRM Summary Generation
+
+✅ Executive Sales Brief Creation
+
+---
+
+## Why this matters
+
+Enterprise pre-sales activities often require several hours of manual work across multiple tools.
+
+This platform standardizes the entire workflow into a modular AI pipeline that produces consistent, explainable and executive-ready outputs within minutes.
+
+Upload a Lead JSON file and click **Analyze Enterprise Lead** to begin.
 """
     )
+
 
 # ==========================================================
 # FOOTER
@@ -330,23 +304,93 @@ st.divider()
 col1, col2, col3 = st.columns(3)
 
 with col1:
-
-    st.caption("🚁 FlytBase AI Sales Copilot")
+    st.caption("🚁 FlytBase Enterprise Sales Intelligence Platform")
 
 with col2:
-
-    st.caption("Powered by OpenRouter • Firecrawl • Tavily")
+    st.caption("Built with Gemini • Tavily • Firecrawl • Streamlit")
 
 with col3:
-
-    st.caption("Enterprise AI Sales Copilot")
+    st.caption("Multi-Agent AI Architecture")
 
 st.caption(
-    """
-Built as a multi-agent AI workflow for enterprise inbound
-lead qualification and solution recommendation.
+"""
+Designed as an explainable AI decision-support platform for enterprise
+lead qualification, solution engineering and sales enablement.
+
+Each AI agent performs a specialized business task and contributes
+structured intelligence to a modular enterprise workflow.
 """
 )
+
+# ==========================================================
+# ARCHITECTURE
+# ==========================================================
+
+with st.expander("🏗 System Architecture", expanded=False):
+
+    st.markdown(
+"""
+## Enterprise Workflow
+
+Lead Upload
+
+⬇️
+
+Company Intelligence
+
+⬇️
+
+Lead Qualification
+
+⬇️
+
+Solution Strategy
+
+⬇️
+
+Recommendation Engine
+
+⬇️
+
+Case Study Matching
+
+⬇️
+
+Partner Recommendation
+
+⬇️
+
+Meeting Preparation
+
+⬇️
+
+Risk Assessment
+
+⬇️
+
+CRM Summary
+
+⬇️
+
+Executive Sales Brief
+
+---
+
+## Why a Multi-Agent Workflow?
+
+Each AI agent is responsible for one specialized enterprise sales task.
+
+This modular architecture improves:
+
+- Explainability
+- Maintainability
+- Scalability
+- Reusability
+- Decision transparency
+
+Rather than relying on a single large prompt, the workflow breaks the sales process into structured business decisions, making recommendations easier to validate and extend.
+"""
+    )
 
 # ==========================================================
 # ABOUT

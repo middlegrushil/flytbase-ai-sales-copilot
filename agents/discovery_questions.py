@@ -1,35 +1,52 @@
 import json
 
 from utils.gemini_client import ask_gemini
+from utils.storage import load_json
 
 
 def generate_discovery_questions():
 
-    with open("output/research.json") as f:
-        research = json.load(f)
+    print("=" * 80)
+    print("❓ Discovery Questions Agent")
+    print("=" * 80)
 
-    with open("output/recommendation.json") as f:
-        recommendation = json.load(f)
+    research = load_json("output/research.json")
+    qualification = load_json("output/qualification.json")
+    recommendation = load_json("output/recommendation.json")
+    strategy = load_json("output/strategy.json")
 
     system_prompt = """
 You are a Senior Enterprise Solutions Engineer at FlytBase.
 
-Generate 10 enterprise discovery questions that will help the sales team better understand the customer's business.
+Generate enterprise discovery questions.
 
-Focus on:
+Group questions under these headings:
 
-- Current inspection workflow
-- Operational challenges
-- Drone usage
-- Automation maturity
-- Safety
-- Budget
-- Deployment timeline
-- Technical requirements
-- Success metrics
-- Scalability
+## Business
 
-Return the response in Markdown.
+## Operations
+
+## Drone Program
+
+## Technical
+
+## Security
+
+## Deployment
+
+## ROI
+
+## Procurement
+
+## Timeline
+
+## Success Metrics
+
+Return MARKDOWN ONLY.
+
+Use numbered questions.
+
+Maximum 15 questions.
 """
 
     user_prompt = f"""
@@ -37,16 +54,38 @@ Company Research
 
 {json.dumps(research, indent=2)}
 
-====================================================
+==================================================
 
-Recommended Solution
+Qualification
+
+{json.dumps(qualification, indent=2)}
+
+==================================================
+
+Recommendation
 
 {json.dumps(recommendation, indent=2)}
+
+==================================================
+
+Strategy
+
+{json.dumps(strategy, indent=2)}
 """
 
-    response = ask_gemini(system_prompt, user_prompt)
+    questions = ask_gemini(
+        system_prompt,
+        user_prompt,
+    )
 
-    with open("output/discovery_questions.md", "w") as f:
-        f.write(response)
+    with open(
+        "output/discovery_questions.md",
+        "w",
+        encoding="utf-8",
+    ) as f:
 
-    print("Discovery questions generated!")
+        f.write(questions)
+
+    print("✅ Discovery Questions Generated")
+
+    return questions

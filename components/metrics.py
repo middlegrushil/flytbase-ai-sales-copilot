@@ -1,20 +1,36 @@
 import streamlit as st
 
 
-def show_metrics(qualification, research):
+def show_metrics(
+    qualification,
+    research,
+    stakeholders,
+):
 
-    score = qualification.get("qualification_score", 0)
+    score = qualification.get(
+        "qualification_score",
+        0,
+    )
 
-    if score >= 80:
-        opportunity = "🟢 HIGH"
-    elif score >= 60:
-        opportunity = "🟡 MEDIUM"
-    else:
-        opportunity = "🔴 LOW"
+    priority = qualification.get(
+        "priority",
+        "Medium",
+    )
 
-    champion = qualification.get("champion", "Unknown")
-    buyer = qualification.get("economic_buyer", "Unknown")
-    industry = research.get("industry", "Unknown")
+    industry = research.get(
+        "industry",
+        "Unknown",
+    )
+
+    champion = (
+        stakeholders.get("champion", {})
+        .get("role", "Not Identified")
+    )
+
+    economic_buyer = (
+        stakeholders.get("economic_buyer", {})
+        .get("role", "Not Identified")
+    )
 
     st.subheader("📊 Opportunity Dashboard")
 
@@ -22,29 +38,31 @@ def show_metrics(qualification, research):
 
     c1.metric(
         "Qualification Score",
-        f"{score}/100"
+        f"{score}/100",
     )
 
     c2.metric(
-        "Opportunity",
-        opportunity
+        "Priority",
+        priority,
     )
 
     c3.metric(
         "Industry",
-        industry
+        industry,
     )
 
-    c1, c2 = st.columns(2)
+    c4, c5 = st.columns(2)
 
-    c1.metric(
+    c4.metric(
         "Champion",
-        champion
+        champion,
     )
 
-    c2.metric(
+    c5.metric(
         "Economic Buyer",
-        buyer
+        economic_buyer,
     )
 
-    st.progress(score / 100)
+    st.progress(
+        min(score / 100, 1.0)
+    )

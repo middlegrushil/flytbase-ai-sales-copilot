@@ -1,80 +1,103 @@
 import json
-import os
 
-from utils.gemini import ask_gemini
+from utils.gemini_client import ask_gemini
+from utils.parser import extract_json
+from utils.storage import load_json, save_json
 
 
 def match_case_study():
-    """
-    Find the most relevant FlytBase case study
-    for the inbound enterprise lead.
-    """
 
-    if not os.path.exists("input/lead.json"):
-        print("❌ lead.json not found")
-        return
+    print("=" * 80)
+    print("📚 Case Study Matching Agent")
+    print("=" * 80)
 
-    if not os.path.exists("output/flytbase_context.json"):
-        print("❌ flytbase_context.json not found")
-        return
+    lead = load_json("input/lead.json")
 
-    with open("input/lead.json", "r") as f:
-        lead = json.load(f)
+    research = load_json("output/research.json")
 
-    with open("output/flytbase_context.json", "r") as f:
-        flytbase = json.load(f)
+    qualification = load_json("output/qualification.json")
 
-    company = lead.get("company_name", "")
-    industry = lead.get("industry", "")
-    use_case = lead.get("interest", "")
-    pain_points = ", ".join(lead.get("pain_points", []))
+    flytbase = load_json("output/flytbase_context.json")
 
-    case_studies = flytbase.get("case_studies", {})
-    markdown = case_studies.get("markdown", "")
+    case_library = (
+        flytbase.get("case_studies", {})
+        .get("markdown", "")
+    )
 
-    prompt = f"""
-You are a FlytBase Enterprise Solutions Engineer.
+    system_prompt = """
+You are FlytBase's Enterprise Solutions Engineer.
 
-Customer Company:
-{company}
+Identify the SINGLE most relevant FlytBase customer success story.
 
-Industry:
-{industry}
+Reason using:
 
-Customer Interest:
-{use_case}
+• Industry
+• Operational similarity
+• Inspection workflow
+• Business challenges
+• FlytBase capability
+• Expected business outcome
 
-Pain Points:
-{pain_points}
+Do NOT invent information.
 
-Below are FlytBase customer case studies.
+Return ONLY valid JSON.
 
-{markdown}
-
-Choose the SINGLE most relevant case study.
-
-Return markdown only using this format.
-
-# Matching Customer
-
-# Why it Matches
-
-# Business Outcomes
-
-# How the Sales Team Should Use This Story
+{
+    "matched_customer":"",
+    "similarity_score":0,
+    "why_relevant":"",
+    "business_similarity":[
+        ""
+    ],
+    "technical_similarity":[
+        ""
+    ],
+    "recommended_sales_story":[
+        ""
+    ],
+    "customer_risk_reduction":"",
+    "confidence":"High | Medium | Low"
+}
 """
 
-    answer = ask_gemini(prompt)
+    user_prompt = f"""
+Lead
 
-    os.makedirs("output", exist_ok=True)
+{json.dumps(lead, indent=2)}
 
-    with open("output/case_study.json", "w") as f:
-        json.dump(
-            {
-                "case_study": answer
-            },
-            f,
-            indent=4,
-        )
+==================================================
 
-    print("✅ Case study generated.")
+Research
+
+{json.dumps(research, indent=2)}
+
+==================================================
+
+Qualification
+
+{json.dumps(qualification, indent=2)}
+
+==================================================
+
+FlytBase Case Study Library
+
+{case_library}
+
+Return JSON only.
+"""
+
+    response = ask_gemini(
+        system_prompt,
+        user_prompt,
+    )
+
+    case_study = extract_json(response)
+
+    save_json(
+        "output/case_study.json",
+        case_study,
+    )
+
+    print("✅ Case Study Matched")
+
+    return case_study

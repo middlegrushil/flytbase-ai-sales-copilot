@@ -1,82 +1,131 @@
+
 import streamlit as st
 
 
 def show_sidebar():
-    """
-    Displays the application sidebar.
-    """
 
     with st.sidebar:
 
-        st.title("🚁 FlytBase")
+        st.markdown(
+            """
+            <h2 style="margin-bottom:0px;">
+            🚁 FlytBase
+            </h2>
 
-        st.caption("AI Sales Copilot")
+            <p style="
+            color:#9FB3C8;
+            margin-top:0px;
+            font-size:14px;
+            ">
+            Enterprise Sales Intelligence Platform
+            </p>
+            """,
+            unsafe_allow_html=True,
+        )
 
         st.divider()
+
+        # =====================================================
+
+        st.subheader("Platform")
+
+        c1, c2 = st.columns(2)
+
+        with c1:
+            st.metric("Status", "🟢")
+
+        with c2:
+            st.metric("Version", "v2")
+
+        st.metric(
+            "Workflow",
+            "Ready"
+        )
+
+        st.metric(
+            "LLM",
+            "Gemini 2.5"
+        )
+
+        st.metric(
+            "Knowledge Base",
+            "Live"
+        )
+
+        st.divider()
+
+        # =====================================================
 
         st.subheader("Workflow")
 
         workflow = [
-            "Lead Qualification",
-            "Company Research",
+
+            "Company Intelligence",
+
+            "Opportunity Qualification",
+
+            "Solution Engineering",
+
             "Sales Strategy",
-            "Solution Recommendation",
-            "Meeting Preparation",
-            "Follow-up Email",
-            "Discovery Questions",
-            "Objection Handling",
-            "Risk Analysis",
-            "Stakeholder Mapping",
-            "CRM Summary",
-            "Next Best Action",
-            "Sales Brief"
+
+            "Customer Engagement",
+
+            "Executive Brief",
+
         ]
 
         for step in workflow:
-            st.success(f"✓ {step}")
+
+            st.markdown(f"✅ {step}")
 
         st.divider()
 
-        st.subheader("Platform")
+        # =====================================================
 
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.metric("LLM", "Gemini")
-
-        with col2:
-            st.metric("Search", "Tavily")
-
-        st.metric(
-            "AI Agents",
-            "12"
-        )
-
-        st.metric(
-            "Status",
-            "Ready"
-        )
-
-        st.divider()
+        st.subheader("AI Pipeline")
 
         st.info(
             """
-### About
+1. Research Company
 
-This AI Sales Copilot automates the enterprise
-sales workflow by:
+↓
 
-- Qualifying inbound leads
-- Researching companies
-- Building sales strategies
-- Recommending FlytBase solutions
-- Preparing meetings
-- Drafting follow-up emails
-- Summarizing CRM notes
-- Generating executive sales briefs
+2. Qualify Opportunity
+
+↓
+
+3. Recommend Solution
+
+↓
+
+4. Match Case Study
+
+↓
+
+5. Build Sales Strategy
+
+↓
+
+6. Generate Sales Assets
 """
         )
 
         st.divider()
 
-        st.caption("FlytBase AI Sales Copilot v1.0")
+        # =====================================================
+
+        st.subheader("Business Value")
+
+        st.success("98% Less Research Time")
+
+        st.success("Evidence-Based Decisions")
+
+        st.success("Explainable AI Workflow")
+
+        st.success("Executive Ready Outputs")
+
+        st.divider()
+
+        st.caption(
+            "Built for FlytBase Solutions Engineers"
+        )

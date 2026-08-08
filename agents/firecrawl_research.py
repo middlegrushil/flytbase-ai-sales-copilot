@@ -1,44 +1,86 @@
-import json
-import os
-
 from utils.firecrawl import scrape_all_pages
-
-
-def convert_document(doc):
-    """
-    Convert Firecrawl Document into a JSON-serializable dictionary.
-    """
-
-    if doc is None:
-        return None
-
-    metadata = {}
-
-    if getattr(doc, "metadata", None):
-        metadata = {
-            "title": getattr(doc.metadata, "title", ""),
-            "url": getattr(doc.metadata, "url", ""),
-            "description": getattr(doc.metadata, "description", "")
-        }
-
-    return {
-        "metadata": metadata,
-        "markdown": getattr(doc, "markdown", "")
-    }
+from utils.gemini_client import ask_gemini
+from utils.parser import extract_json
+from utils.storage import save_json
 
 
 def firecrawl_research():
 
-    os.makedirs("output", exist_ok=True)
+    print("=" * 80)
+    print("🚁 FlytBase Knowledge Base")
+    print("=" * 80)
 
     pages = scrape_all_pages()
 
-    cleaned = {}
+    combined = ""
 
-    for page_name, document in pages.items():
-        cleaned[page_name] = convert_document(document)
+    for section, doc in pages.items():
 
-    with open("output/flytbase_context.json", "w") as f:
-        json.dump(cleaned, f, indent=4)
+        if doc is None:
+            continue
 
-    print("✅ Firecrawl knowledge base created successfully!")
+        markdown = ""
+
+        # Firecrawl Document object
+        if hasattr(doc, "markdown"):
+            markdown = doc.markdown
+
+        # Older SDK compatibility
+        elif hasattr(doc, "data"):
+            data = doc.data
+
+            if isinstance(data, dict):
+                markdown = data.get("markdown", "")
+
+        combined += f"""
+
+==================================================
+SECTION
+==================================================
+
+{section.upper()}
+
+{markdown}
+
+"""
+
+    system_prompt = """
+You are building FlytBase's internal knowledge base.
+
+Read all supplied website content.
+
+Summarize it into four sections.
+
+Return ONLY valid JSON.
+
+{
+    "products":{
+        "markdown":""
+    },
+    "solutions":{
+        "markdown":""
+    },
+    "case_studies":{
+        "markdown":""
+    },
+    "partners":{
+        "markdown":""
+    }
+}
+"""
+
+    response = ask_gemini(
+        system_prompt,
+        combined,
+    )
+
+    context = extract_json(response)
+
+    save_json(
+        "output/flytbase_context.json",
+        context,
+    )
+
+    print("✅ Knowledge Base Created")
+
+    return context
