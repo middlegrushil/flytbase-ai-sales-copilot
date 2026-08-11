@@ -1,43 +1,45 @@
 import os
+
 from dotenv import load_dotenv
 from google import genai
 
 load_dotenv()
 
-client = genai.Client(
-    api_key=os.getenv("GEMINI_API_KEY")
-)
+API_KEY = os.getenv("GEMINI_API_KEY")
+
+if not API_KEY:
+    raise RuntimeError("GEMINI_API_KEY is not configured.")
+
+client = genai.Client(api_key=API_KEY)
 
 MODEL = "gemini-3.5-flash"
 
 
 def ask_gemini(system_prompt, user_prompt):
 
-    response = client.models.generate_content(
+    try:
 
-        model=MODEL,
+        response = client.models.generate_content(
+            model=MODEL,
+            contents=[
+                {
+                    "role": "user",
+                    "parts": [
+                        {
+                            "text": (
+                                f"SYSTEM INSTRUCTIONS:\n"
+                                f"{system_prompt}\n\n"
+                                f"USER REQUEST:\n"
+                                f"{user_prompt}"
+                            )
+                        }
+                    ],
+                }
+            ],
+        )
 
-        contents=[
-            {
-                "role": "user",
-                "parts": [
-                    {
-                        "text":
-f"""
-SYSTEM
+        return response.text
 
-{system_prompt}
+    except Exception as e:
 
-------------------------------------------------
-
-USER
-
-{user_prompt}
-"""
-                    }
-                ]
-            }
-        ],
-    )
-
-    return response.text.strip()
+        raise RuntimeError(e)
